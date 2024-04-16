@@ -1,0 +1,39 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <link rel="stylesheet" href="{% static 'movie_detail.css' %}">
+
+    <div class="container">
+        <h1>Movie Detail</h1>
+        <div>
+            <h2>Title: {{ movie.title }}</h2>
+            <p>Genre: {{ movie.genre }}</p>
+            <p>Director: {{ movie.director }}</p>
+            <p>Actors: {{ movie.actors }}</p>
+            <p>Duration: {{ movie.duration }} minutes</p>
+            <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
+        </div>
+    </div>
+
+
+    <div class="hidden-container">
+        <form class="booking-form">
+            <div class='consecutive_dates_container'>
+                {% for date in consecutive_dates %}
+                    <a class="btn-consecutive-dates" href="/movie-detail/{{movie.id}}/{{forloop.counter0}}">{{ date|date:"D, m d" }}</a>{% if not forloop.last %} {% endif %}
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    {% comment %} <script src="{% static 'booking_form.js' %}"></script> {% endcomment %}
+
+</body>
+
+</html>
+
+
+

@@ -1,0 +1,38 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <link rel="stylesheet" href="{% static 'movie_detail.css' %}">
+
+    <div class="hidden-container">
+        <form class="booking-form">
+            <div class='consecutive_dates_container'>
+                {% for date in consecutive_dates %}
+                    <a class="btn-consecutive-dates" href="/movie-detail/{{id_movie}}/{{forloop.counter0}}">{{ date|date:"D, m d" }}</a>{% if not forloop.last %} {% endif %}
+                {% endfor %}
+            </div>
+
+            <div>
+                {% for hall, screenings in screenings_grouped_list %}
+                    <h4>Rạp số {{ hall }}</h4>
+                    {% for screening in screenings %}
+                        <a  href="{{ screening.id }}" class="btn-screening">
+                            {{ screening.start_time|date:"H:i" }}
+                        </a>
+                        {{ screening.remaining_seats}}
+                    {% endfor %}
+                    
+                {% endfor %}
+        
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'booking_form.js' %}"></script>
+
+</body>
+
+</html>
+

@@ -1,0 +1,35 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Django + Stripe Checkout</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://js.stripe.com/v3/"></script>  <!-- new -->
+    <script src="{% static 'payment.js' %}"></script>
+    <script defer src="https://use.fontawesome.com/releases/v6.4.0/js/all.js"></script>
+  </head>
+  <body>
+    <section class="section">
+      <div class="container">
+        <form id="payment-form">
+          <div class="field">
+            <label class="label">Họ và tên</label>
+            <div class="control">
+              <input class="input" type="text" id="name" placeholder="Nhập tên của bạn">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Số điện thoại</label>
+            <div class="control">
+              <input class="input" type="text" id="phone" placeholder="Nhập số điện thoại của bạn">
+            </div>
+          </div>
+          <button class="button is-primary" id="btn-payment-submit">Thanh toán!</button>
+        </form>
+      </div>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+
+<body>
+    <link rel="stylesheet" href="{% static 'booking.css' %}">
+    
+    <div class="id-screening-hidden" id="id-screening" data-id="{{ id_screening }}"> </div>
+
+    <div class="booking-view">
+        
+        {% for seat in all_seats %}
+            {% if seat.id in booked_seats_index_list %}
+                <a href="#" class="btn-booking btn-booked-seat">
+                    {{ seat.seat_row }}{{ seat.seat_column}}
+                </a>
+            {% else %}
+                {% comment %} <a href="{{ seat.id }}" class="btn-booking" id="btn-booking" data-id="{{ seat.id }}">
+                    {{ seat.seat_row }}{{ seat.seat_column}}
+                </a> {% endcomment %}
+                <a href="#" class="btn-booking" id="btn-booking" data-id="{{ seat.id }}">
+                    {{ seat.seat_row }}{{ seat.seat_column}}
+                </a>
+            {% endif %}
+        {% endfor %}
+        
+    </div>
+
+    <a href="/payment/" id="btn-confirm-booking">Đặt vé</a>
+
+    <script src="{% static 'booking.js' %}"></script>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+    <link rel="stylesheet" href="{% static 'movie.css' %}">
+
+    <body>
+        <div class="header-container">
+            <h1 class="movie-title">Danh sách các phim</h1>
+            <a class="admin-link" href="/admin">Đến trang Admin</a>
+        </div>
+        
+        <div class="movie-container">
+            {% for movie in movie_list %}
+                <div class="movie">
+                    <a href="movie-detail/{{ movie.id }}">
+                        <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
+                    </a>
+                    <h2>{{ movie.title }}</h2>
+                    <p><strong>Thể loại:</strong> {{ movie.genre }}</p>
+                    <p><strong>Thời lượng:</strong> {{ movie.duration }} phút</p>
+                </div>
+            {% endfor %}
+        </div>
+    
+    </body>
+</html>
