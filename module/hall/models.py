@@ -46,9 +46,9 @@ class SeatType(models.Model):
 class SeatDetail(models.Model):
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE)
     seat_row = models.IntegerField()
-    seats_column = models.IntegerField()
+    seat_column = models.IntegerField()
     seat_type = models.ForeignKey(SeatType, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Seat detail: {self.hall} - {self.seat_type} - {self.seat_row}:{self.seats_column}"
+        return f"Seat detail: {self.hall} - {self.seat_type} - {self.seat_row}:{self.seat_column}"
 

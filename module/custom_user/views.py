@@ -95,7 +95,6 @@ class RefreshTokenAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 # get profile
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -133,6 +132,7 @@ class EditProfileAPIView(APIView):
             status=status.HTTP_200_OK,
         )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # upload image 
 class ImageUploadAPIView(APIView):

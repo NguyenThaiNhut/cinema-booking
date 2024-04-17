@@ -11,25 +11,41 @@ from .serializers import MovieSerializer
 
 # get list of movies
 class ListMovieAPIView(APIView):
-    permission_classes = [IsAdminUser]
-    authentication_classes = [JWTAuthentication]
-
-    def get(self, request):
-        movies = Movie.objects.all()
-        serializer = MovieSerializer(movies, many=True)
-        return Response(
-            {
-                "message": "Get list movie successful",
-                "data": serializer.data,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-# create a new movie
-class CreateMovieAPIView(APIView):
     # permission_classes = [IsAdminUser]
     # authentication_classes = [JWTAuthentication]
 
+    def get(self, request, movie_id):
+        try:
+            if movie_id == 'ALL':
+                movies = Movie.objects.all()
+                serializer = MovieSerializer(movies, many=True)
+                return Response(
+                    {
+                        "message": "Get list movie successful",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                movie = Movie.objects.get(pk=movie_id)
+                serializer = MovieSerializer(movie)
+                return Response(
+                    {
+                        "message": "Get movie successful",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            
+        except Movie.DoesNotExist:
+            return Response({"message": "Movie not found"}, status=status.HTTP_404_NOT_FOUND)
+
+# CUD movie
+class MovieAPIView(APIView):
+    # permission_classes = [IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
+
+    # create a new movie
     def post(self, request):
         serializer = MovieSerializer(data=request.data)
         if serializer.is_valid():
@@ -42,44 +58,38 @@ class CreateMovieAPIView(APIView):
             status=status.HTTP_201_CREATED,
         )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# update a movie by its id
-class EditMovieAPIView(APIView):
-    permission_classes = [IsAdminUser]
-    authentication_classes = [JWTAuthentication]
-
-    def put(self, request, pk):
+    
+    # update a movie by its id
+    def put(self, request, movie_id):
         try:
-            movie = Movie.objects.get(pk=pk)
+            movie = Movie.objects.get(pk=movie_id)
+            serializer = MovieSerializer(movie, data=request.data, partial=True)
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                {
+                    "message": "Update movie successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Movie.DoesNotExist:
             return Response({"message": "Movie not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = MovieSerializer(movie, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-            {
-                "message": "Update movie successful",
-                "data": serializer.data,
-            },
-            status=status.HTTP_200_OK,
-        )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# delete a movie by its id
-class DeleteMovieAPIView(APIView):
-    permission_classes = [IsAdminUser]
-    authentication_classes = [JWTAuthentication]
-
-    def delete(self, request, pk):
+    
+    # delete a movie by its id
+    def delete(self, request, movie_id):
         try:
-            movie = Movie.objects.get(pk=pk)
+            movie = Movie.objects.get(pk=movie_id)
         except Movie.DoesNotExist:
             return Response({"message": "Movie not found"}, status=status.HTTP_404_NOT_FOUND)
         
         movie.delete()
         return Response({"message": "Delete movie successfully"}, status=status.HTTP_204_NO_CONTENT)
-    
+
+
 # class CustomSearchFilter(filters.SearchFilter):
 #     def get_search_fields(self, view, request):
 #         if request.query_params.get('director_and_actor_only'):

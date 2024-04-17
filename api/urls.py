@@ -31,6 +31,7 @@ urlpatterns = [
     path("", include("module.payment.urls")),
     path("", include("module.custom_user.urls")),
     path("", include("module.hall.urls")),
+    path("", include("module.screening.urls")),
     path("admin/", admin.site.urls),
 ]
 
