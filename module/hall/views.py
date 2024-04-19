@@ -4,19 +4,24 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import CinemaBrand, Cinema, HallType, Hall, SeatType, SeatDetail
+from .models import Address, CinemaBrand, Cinema, HallType, Hall, SeatType, SeatDetail
 from .serializers import (
     CinemaBrandSerializer, CinemaSerializer, 
     HallTypeSerializer, HallSerializer, 
-    SeatTypeSerializer, SeatSerializer
+    SeatTypeSerializer, SeatSerializer,
+    AddressSerializer,
 )
 
+from module.custom_user.serializers import ProfileSerializer
+
+# api of admins
 # CRUD cinema brand
 # get cinema brand
 class GetListCinemaBrandAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list cinema brand - all brands/brand by id
     def get(self, request, brand_id):
@@ -47,8 +52,8 @@ class GetListCinemaBrandAPIView(APIView):
         
 # create/update/delete cinema brand
 class CinemaBrandAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     
     # create a new cinema brand 
     def post(self, request):
@@ -97,8 +102,8 @@ class CinemaBrandAPIView(APIView):
 # CRUD cinema
 # get cinema
 class GetListCinemaAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list cinema - all brands/brand by id
     def get(self, request, cinema_id):
@@ -126,10 +131,11 @@ class GetListCinemaAPIView(APIView):
             
         except Cinema.DoesNotExist:
             return Response({"message": "Cinema not found"}, status=status.HTTP_404_NOT_FOUND)
+
 # create/update/delete cinema
 class CinemaAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     
     # create a new cinema 
     def post(self, request):
@@ -179,8 +185,8 @@ class CinemaAPIView(APIView):
 # CRUD hall type
 # get hall type
 class GetListHallTypeAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list hall type - all hall types/hall type by id
     def get(self, request, type_id):
@@ -208,10 +214,11 @@ class GetListHallTypeAPIView(APIView):
             
         except HallType.DoesNotExist:
             return Response({"message": "Hall type not found"}, status=status.HTTP_404_NOT_FOUND)
+
 # create/update/delete hall type
 class HallTypeAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     
     # create a new hall type 
     def post(self, request):
@@ -261,8 +268,8 @@ class HallTypeAPIView(APIView):
 # CRUD hall
 # get hall
 class GetListHallAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list hall - all halls/hall by id
     def get(self, request, hall_id):
@@ -290,10 +297,11 @@ class GetListHallAPIView(APIView):
             
         except Hall.DoesNotExist:
             return Response({"message": "Hall not found"}, status=status.HTTP_404_NOT_FOUND)
+
 # create/update/delete hall
 class HallAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     
     # create a new hall 
     def post(self, request):
@@ -343,8 +351,8 @@ class HallAPIView(APIView):
 # CRUD seat type
 # get seat type
 class GetListSeatTypeAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list seat type - all seat types/seat type by id
     def get(self, request, type_id):
@@ -372,10 +380,11 @@ class GetListSeatTypeAPIView(APIView):
             
         except SeatType.DoesNotExist:
             return Response({"message": "seat type not found"}, status=status.HTTP_404_NOT_FOUND)
+
 # create/update/delete seat type
 class SeatTypeAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     
     # create a new seat type 
     def post(self, request):
@@ -425,8 +434,8 @@ class SeatTypeAPIView(APIView):
 # CRUD seat
 # get seat
 class GetListSeatAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list seat - all seat types/seat by id
     def get(self, request, seat_id):
@@ -454,10 +463,11 @@ class GetListSeatAPIView(APIView):
             
         except SeatDetail.DoesNotExist:
             return Response({"message": "Seat not found"}, status=status.HTTP_404_NOT_FOUND)
+
 # create/update/delete seat
 class SeatAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     
     # create a new seat 
     def post(self, request):
@@ -502,3 +512,33 @@ class SeatAPIView(APIView):
     
         except SeatDetail.DoesNotExist:
             return Response({"message": "Seat not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# api of customers
+# get list address (province)
+class GetListAddressAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+
+    # get list seat - all seat types/seat by id
+    def get(self, request):
+        try:
+            addresses = Address.objects.all()
+            serializer = AddressSerializer(addresses, many=True)
+            return Response(
+                {
+                    "message": "Get list addresses successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
+        except Address.DoesNotExist:
+            return Response({"message": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+#search list address by province
+class SearchAddressAPIView(generics.ListAPIView): # "search=" is default key
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["province"]

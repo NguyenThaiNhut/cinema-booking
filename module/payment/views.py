@@ -20,7 +20,9 @@ import json
 import schedule
 import time
 import datetime
-from apscheduler.schedulers.background import BackgroundScheduler
+
+from module.schedulers import start_scheduler_payment
+
 
 # from module.screening.models import Screening
 # from module.seat_detail.models import SeatDetail
@@ -63,25 +65,6 @@ class StripeConfigAPIView(APIView):
         # Construct Stripe configuration object with public key
         stripe_config = {"publicKey": settings.STRIPE_PUBLISHABLE_KEY}
         return Response(stripe_config)
-
-
-# def validate_customer_info(data):
-#     errors = {}
-#     name = data.get("name")
-#     if not name:
-#         errors["name"] = "Tên không được để trống."
-
-#     phone = data.get("phone")
-#     if not phone:
-#         errors["phone"] = "Số điện thoại không được để trống."
-#     elif not phone.isdigit():
-#         errors["phone"] = "Số điện thoại chỉ được chứa các ký tự số."
-
-#     # Trả về kết quả
-#     if errors:
-#         return False, errors
-#     else:
-#         return True, errors
 
 
 # API view for creating a payment session
@@ -151,6 +134,7 @@ class CreatePaymentSessionAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_200_OK)
 
+
 # Background task for processing payouts to bank account
 def pay_out_to_my_bank():
     print("Running job at", datetime.datetime.now())
@@ -166,8 +150,5 @@ def pay_out_to_my_bank():
             currency="AUD",
         )
 
-# Scheduler for running background task
-scheduler = BackgroundScheduler()
-scheduler.add_job(pay_out_to_my_bank, 'cron', day_of_week='fri', hour=0, minute=0, week='2')
-# scheduler.add_job(pay_out_to_my_bank, 'cron', second='*/10')
-scheduler.start()
+# Set up recurring payments on Friday every 2 weeks
+start_scheduler_payment(pay_out_to_my_bank)

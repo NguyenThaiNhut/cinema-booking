@@ -108,9 +108,7 @@ class FilterMovieAPIView(generics.ListAPIView):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = {
-        "language__name"
-    }
+    filterset_fields = {"language__name"}
 
 
 # class FilterMovieAPIView(generics.ListAPIView):

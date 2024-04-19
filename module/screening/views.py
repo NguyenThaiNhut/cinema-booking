@@ -1,14 +1,17 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import ScreeningPrice, Screening
 from .serializers import ScreeningPriceSerializer, ScreeningSerializer
 
 # CRUD screening price
 # get screening price
 class GetListScreeningPriceAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
     
     # get list screening price - all screening prices/screening price by id
     def get(self, request, price_id):
@@ -39,8 +42,8 @@ class GetListScreeningPriceAPIView(APIView):
 
 # create/update/delete screening price
 class ScreeningPriceAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
 
     # create a new screening price
     def post(self, request):
@@ -90,8 +93,8 @@ class ScreeningPriceAPIView(APIView):
 # CRUD screening
 # get screening
 class GetListScreeningAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     # get list screening - all screenings/screening by id
     def get(self, request, screening_id):
@@ -121,8 +124,8 @@ class GetListScreeningAPIView(APIView):
 
 # create/update/delete screening
 class ScreeningAPIView(APIView):
-    # permission_classes = [IsAdminUser]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
 
     # create a new screening
     def post(self, request):

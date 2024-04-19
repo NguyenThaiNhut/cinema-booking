@@ -7,9 +7,11 @@ from .views import (
     GetListHallAPIView, HallAPIView,
     GetListSeatTypeAPIView, SeatTypeAPIView,
     GetListSeatAPIView, SeatAPIView,
+    GetListAddressAPIView, SearchAddressAPIView,
 )
 
 urlpatterns = [
+    # api of admin
     path("admin-user/cinema-brand/get-brand-by-id/<str:brand_id>/", GetListCinemaBrandAPIView.as_view(), name="get-brand-by-id"), 
     path("admin-user/cinema-brand/add-brand/", CinemaBrandAPIView.as_view(), name="add-brand"),
     path("admin-user/cinema-brand/update-brand/<int:brand_id>/", CinemaBrandAPIView.as_view(), name="update-brand"),
@@ -39,4 +41,8 @@ urlpatterns = [
     path("admin-user/seat/add-seat/", SeatAPIView.as_view(), name="add-seat"),
     path("admin-user/seat/update-seat/<int:seat_id>/", SeatAPIView.as_view(), name="update-seat"),
     path("admin-user/seat/delete-seat/<int:seat_id>/", SeatAPIView.as_view(), name="delete-seat"),
+
+    # api of customer
+    path("address/get-list-address/", GetListAddressAPIView.as_view(), name="get-list-address"), 
+    path("address/search/", SearchAddressAPIView.as_view(), name="search-address"), 
 ]

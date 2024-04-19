@@ -2,7 +2,7 @@ from rest_framework import serializers
 from datetime import datetime, timedelta
 
 from .models import CustomUser
-
+from module.hall.models import Address
 
 # register
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -39,6 +39,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
     
     def validate_phone_number(self, attrs):
+        if not attrs.isdigit() or len(attrs) < 10 or len(attrs) > 15:
+            raise serializers.ValidationError("Invalid phone number.")
+        
         if CustomUser.objects.filter(phone_number=attrs):
             raise serializers.ValidationError("Phone number already exists.")
         return attrs
@@ -104,48 +107,41 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "email", "phone_number", "dob", "avatar", "stripe_customer_id"]
+        fields = ["id", "username", "email", "phone_number", "dob", "avatar", "stripe_customer_id", "address_id"]
 
-    def validate_phone_number(self, value):
-        if not value.isdigit() or len(value) < 10 or len(value) > 15:
-            raise serializers.ValidationError("Invalid phone number.")
-        return value
+    def validate_email(self, attrs):
+        if CustomUser.objects.filter(email=attrs):
+            raise serializers.ValidationError("Email already exists")
+        return attrs
+    
+    def validate_phone_number(self, attrs):
+        if not attrs.isdigit() or len(attrs) < 10 or len(attrs) > 15:
+            raise serializers.ValidationError("Invalid phone number")
+        
+        if CustomUser.objects.filter(phone_number=attrs):
+            raise serializers.ValidationError("Phone number already exists")
+        return attrs
+        
+    def validate_dob(self, attrs):
+        current_date = datetime.now().date()
+        if attrs > current_date:
+            raise serializers.ValidationError("Date cannot be in the future")
+        return attrs
+    
+    def validate_address_id(self, attrs):
+        if not Address.objects.filter(id=attrs):
+            raise serializers.ValidationError("Address doesn't exist")
+        return attrs
     
     def update(self, instance, validated_data):      
-         
         instance.username = validated_data.get('username', instance.username)
         instance.email = validated_data.get('email', instance.email)
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
         instance.dob = validated_data.get('dob', instance.dob)
         instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.address_id = validated_data.get('address_id', instance.address_id)
 
         print(f"checkk: {validated_data}") 
 
         instance.save()
         return instance
-    
-
-# update url img in db
-# class AvatarSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CustomUser
-#         fields = ["avatar"]
-
-#     def update(self, instance, validated_data):
-#         instance.avatar = validated_data.get('avatar', instance.avatar)
-
-#         instance.save()
-#         return instance
-
-    # class Meta:
-    #     model = CustomUser
-    #     fields = ["avatar",]
-
-    # def update(self, instance, validated_data):
-    #     instance.username = validated_data.get('username', instance.username)
-    #     instance.email = validated_data.get('email', instance.email)
-    #     instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-    #     instance.dob = validated_data.get('dob', instance.dob)
-
-    #     instance.save()
-    #     return instance

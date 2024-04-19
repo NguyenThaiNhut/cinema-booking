@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from django.conf import settings
 
 from rest_framework import status
@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+
 import os
 from supabase import create_client, Client, ClientOptions
 import stripe
@@ -16,10 +18,7 @@ import stripe
 from django.contrib.auth import authenticate
 from .serializers import RegistrationSerializer, LoginSerializer, ProfileSerializer
 from .models import CustomUser
-
-
-# url: str = os.environ.get("SUPABASE_URL")
-# key: str = os.environ.get("SUPABASE_KEY")
+from module.schedulers import start_scheduler_custom_user
 
 
 # register
@@ -74,6 +73,20 @@ class LoginAPIView(APIView):
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# logout
+class LogoutAPIView(APIView):
+    def post(self, request):
+        try:
+            refresh_token = request.data['refresh_token']
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": "Error logging out"}, status=status.HTTP_400_BAD_REQUEST)
+        
     
 # refresh token 
 class RefreshTokenAPIView(APIView):
@@ -113,7 +126,7 @@ class ProfileAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# edit profile
+# update profile
 class EditProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
@@ -177,6 +190,18 @@ class ImageUploadAPIView(APIView):
                 return Response({"message": "Update avatar successful"}, status=status.HTTP_201_CREATED)
             else: return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else: return Response(response["message"], status=status.HTTP_400_BAD_REQUEST)
+
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(test_scheduler, 'cron', day_of_week='fri', hour=0, minute=0, week='2')
+# # scheduler.add_job(pay_out_to_my_bank, 'cron', second='*/10')
+# scheduler.start()
+
+# Set up remove expired refresh tokens in blacklist function
+def remove_expired_refresh_tokens():
+    current_time_utc = datetime.now(timezone.utc)
+    OutstandingToken.objects.filter(expires_at__lt=current_time_utc).delete()
+
+start_scheduler_custom_user(remove_expired_refresh_tokens)
 
         
         

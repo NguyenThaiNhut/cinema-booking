@@ -7,6 +7,7 @@ class CustomUser(AbstractUser):
     dob = models.DateField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=False, null=False)
     stripe_customer_id  = models.CharField(max_length=255, blank=True, null=True)
+    address_id  = models.CharField(max_length=255, blank=True, null=True)
 
     # def __str__(self) -> str:
     #     return self.phone_number
