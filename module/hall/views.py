@@ -2,18 +2,22 @@ from rest_framework import status, filters, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.mail import send_mail
 
 from .models import Address, CinemaBrand, Cinema, HallType, Hall, SeatType, SeatDetail
+from module.screening.models import Screening
+from module.custom_user.models import CustomUser, UserFavoriteCinema
+
 from .serializers import (
     CinemaBrandSerializer, CinemaSerializer, 
     HallTypeSerializer, HallSerializer, 
     SeatTypeSerializer, SeatSerializer,
-    AddressSerializer,
+    AddressSerializer, 
+    UserFavoriteCinemaSerializer,
 )
-
+from module.screening.serializers import ScreeningSerializer
 from module.custom_user.serializers import ProfileSerializer
 
 # api of admins
@@ -520,7 +524,7 @@ class GetListAddressAPIView(APIView):
     # permission_classes = [IsAuthenticated]
     # authentication_classes = [JWTAuthentication]
 
-    # get list seat - all seat types/seat by id
+    # get list address
     def get(self, request):
         try:
             addresses = Address.objects.all()
@@ -542,3 +546,181 @@ class SearchAddressAPIView(generics.ListAPIView): # "search=" is default key
     serializer_class = AddressSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["province"]
+
+    def list(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(
+            {
+                "message": "Get list addresses successful",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+
+# get list cinemas (by province)
+class GetListCienmaAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+
+    # get list cinema by address_id
+    def get(self, request, address_id):
+        try:
+            addresses = Address.objects.get(pk=address_id)
+            cinemas = Cinema.objects.filter(address=addresses)
+            serializer = CinemaSerializer(cinemas, many=True)
+            return Response(
+                {
+                    "message": "Get list cinemas successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
+        except Address.DoesNotExist:
+            return Response({"message": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+# search cinema by name (province)
+class SearchCinemaAPIView(generics.ListAPIView): # "search=" is default key
+    queryset = Cinema.objects.all()
+    serializer_class = CinemaSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name"]
+
+    def list(self, request):
+        address_id = request.query_params.get("address_id")
+        if address_id:
+            try:
+                queryset = self.filter_queryset(self.get_queryset().filter(address_id=address_id))
+            except Address.DoesNotExist:
+                return Response({"message": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(
+            {
+                "message": "Get list cinemas successful",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+# filter cinema by cinema brand
+class FilterCinemaByBrandAPIView(generics.ListAPIView):
+    queryset = Cinema.objects.all()
+    serializer_class = CinemaSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {"brand"}
+
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        address_id = self.request.query_params.get("address_id")
+
+        if address_id:
+            queryset = Cinema.objects.filter(address_id=address_id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(
+                {
+                    "message": "Get list cinemas successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return super().get(request, *args, **kwargs)
+    
+# get details cinema
+class GetDetailCienmaAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+
+    # get detail cinema by address_id
+    def get(self, request, cinema_id):
+        screenings = Screening.objects.filter(hall__cinema__id=cinema_id).order_by("-start_time")
+        serializer = ScreeningSerializer(screenings, many=True)
+        # serializer_cinema = CinemaSerializer(cinema)
+        return Response(
+            {
+                "message": "Get detail cinema successful",
+                "data": serializer.data
+            },
+            status=status.HTTP_200_OK,
+        )
+            
+        
+# add cinema to user's favorites cinema
+class UserFavoriteCinemaAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    # get list cinemas from user's favorites cinema
+    def get(self, request):
+        user_id = request.user.id
+        cinemas = UserFavoriteCinema.objects.filter(user_id=user_id)
+        serializer = UserFavoriteCinemaSerializer(cinemas, many=True)
+        return Response(
+            {
+                "message": "Get list cinemas from user's favorite cinema successful",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+        
+    # add cinema to user's favorite cinemas 
+    def post(self, request):
+        user_id = request.user.id 
+        cinema_id = request.data.get('cinema_id') 
+        
+        if UserFavoriteCinema.objects.filter(user_id=user_id, cinema_id=cinema_id).exists():
+            return Response({"message": "This cinema is already in your favorite list"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = UserFavoriteCinemaSerializer(data={"user_id": user_id, "cinema_id": cinema_id})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Added cinema to favorite list successfully", 
+                    "data": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # delete cinema to user's favorite cinemas 
+    def delete(self, request, user_favorite_cinema_id):
+        try:
+            user_favorite_cinema = UserFavoriteCinema.objects.get(pk=user_favorite_cinema_id)
+            user_favorite_cinema.delete()
+            return Response({"message": "Delete cinema from the user's favorite cinema successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+        except UserFavoriteCinema.DoesNotExist:    
+            return Response({"message": "Cinema not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class SendEmailAPIView(APIView):
+    def post(self, request):
+        sender_email = request.data.get('sender_email', 'nguyenthainhut005@gmail.com')
+        recipient_email = request.data.get('recipient_email', 'nguyenthainhut001@gmail.com')
+
+        try:
+            send_mail(
+                "Subject here",
+                "Here is the message.",
+                sender_email,
+                [recipient_email],
+                fail_silently=False,
+            )
+            return Response({"message": "Email sent successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+

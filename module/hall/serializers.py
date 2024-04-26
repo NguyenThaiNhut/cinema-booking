@@ -5,6 +5,8 @@ from .models import (
     HallType, Hall,
     SeatType, SeatDetail
 )
+from module.custom_user.models import CustomUser, UserFavoriteCinema
+from module.custom_user.serializers import ProfileSerializer
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -49,6 +51,25 @@ class CinemaSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+
+class UserFavoriteCinemaSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(read_only=True)
+    cinema = CinemaSerializer(read_only=True)
+
+    user_id = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), source='user', write_only=True)
+    cinema_id = serializers.PrimaryKeyRelatedField(queryset=Cinema.objects.all(), source='cinema', write_only=True)
+
+    class Meta:
+        model = UserFavoriteCinema
+        fields = ["id", "user", "cinema", "user_id", "cinema_id"]
+
+    def create(self, validated_data):
+        user_id = validated_data.get("user").id
+        cinema_id = validated_data.get("cinema").id
+
+        user_favorite_cinema = UserFavoriteCinema.objects.create(**validated_data, user_id=user_id, cinema_id=cinema_id)
+        return user_favorite_cinema
     
 
 class HallTypeSerializer(serializers.ModelSerializer):

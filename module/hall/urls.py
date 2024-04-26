@@ -8,6 +8,8 @@ from .views import (
     GetListSeatTypeAPIView, SeatTypeAPIView,
     GetListSeatAPIView, SeatAPIView,
     GetListAddressAPIView, SearchAddressAPIView,
+    GetListCienmaAPIView, SearchCinemaAPIView, FilterCinemaByBrandAPIView, GetDetailCienmaAPIView, UserFavoriteCinemaAPIView,
+    SendEmailAPIView
 )
 
 urlpatterns = [
@@ -45,4 +47,15 @@ urlpatterns = [
     # api of customer
     path("address/get-list-address/", GetListAddressAPIView.as_view(), name="get-list-address"), 
     path("address/search/", SearchAddressAPIView.as_view(), name="search-address"), 
+
+    path("cinema/get-list-cinema/<int:address_id>/", GetListCienmaAPIView.as_view(), name="get-list-cinema-by-address"), 
+    path("cinema/search/", SearchCinemaAPIView.as_view(), name="search-cinema-by_address"), 
+    path("cinema/filter/brand/", FilterCinemaByBrandAPIView.as_view(), name="filter-cinema-by-brand-by-address"),   
+    path("cinema/detail/<int:cinema_id>/", GetDetailCienmaAPIView.as_view(), name="get-detail-cinema"),
+
+    path("cinema/add-user-favorite-cinema/", UserFavoriteCinemaAPIView.as_view(), name="add-user-favorite-cinema"),
+    path("cinema/delete-user-favorite-cinema/<int:user_favorite_cinema_id>", UserFavoriteCinemaAPIView.as_view(), name="delete-user-favorite-cinema"),
+    path("cinema/get-list-user-favorite-cinema/", UserFavoriteCinemaAPIView.as_view(), name="get-list-user-favorite-cinema"),
+
+    path("test-email/", SendEmailAPIView.as_view(), name="test-email"),
 ]

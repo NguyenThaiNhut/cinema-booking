@@ -13,6 +13,9 @@ class ScreeningPrice(models.Model):
     description = models.CharField(max_length=100)
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
 
+    def __str__(self):
+        return f"{self.day_type} - {self.base_price}"
+
 
 class Screening(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
@@ -20,5 +23,8 @@ class Screening(models.Model):
     start_time = models.DateTimeField()
     remaining_seats = models.IntegerField()
     price = models.ForeignKey(ScreeningPrice, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.movie} - {self.hall} - {self.start_time} - {self.price}"
 
     

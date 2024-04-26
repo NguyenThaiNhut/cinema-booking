@@ -20,7 +20,7 @@ class Cinema(models.Model):
     brand = models.ForeignKey(CinemaBrand, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.address} - {self.name}"
 
 class HallType(models.Model):
     name = models.CharField(max_length=100)

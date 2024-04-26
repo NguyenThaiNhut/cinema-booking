@@ -32,6 +32,8 @@ class MovieSerializer(serializers.ModelSerializer):
     genre_ids = serializers.PrimaryKeyRelatedField(queryset=Genre.objects.all(), many=True, source='genre', write_only=True)
     director_and_actor_ids = serializers.PrimaryKeyRelatedField(queryset=DirectorAndActor.objects.all(), many=True, source='director_and_actor', write_only=True)
 
+    num_bookings = serializers.IntegerField(required=False) # optional field
+
     class Meta:
         model = Movie
         fields = (
@@ -50,6 +52,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "language_ids", 
             "genre_ids", 
             "director_and_actor_ids",
+            "num_bookings",
         )
 
     def create(self, validated_data):

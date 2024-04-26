@@ -2,12 +2,17 @@ from rest_framework import status, filters, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django_filters.rest_framework import DjangoFilterBackend
 
+from django.db.models import Count
+from datetime import date
+
 from .models import Movie
 from .serializers import MovieSerializer
+
+from module.booking.models import Booking
+from module.booking.serializers import BookingSerializer
 
 # get list of movies
 class ListMovieAPIView(APIView):
@@ -108,7 +113,7 @@ class FilterMovieAPIView(generics.ListAPIView):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = {"language__name"}
+    filterset_fields = {"language"}
 
 
 # class FilterMovieAPIView(generics.ListAPIView):
@@ -125,3 +130,79 @@ class FilterMovieAPIView(generics.ListAPIView):
 #         if title is not None:
 #             queryset = queryset.filter(title=title)
 #         return queryset
+
+
+# get list of current showing movies 
+class GetListCurrentShowingMovieAPIView(APIView):
+
+    def get(self, request):
+        current_date = date.today()
+        movies = Movie.objects.filter(release_date__lt=current_date)
+        serializer = MovieSerializer(movies, many=True)
+        return Response(
+            {
+                "message": "Get list of current showing movies successful",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+
+# get list of upcoming movies 
+class GetListUpcomingMovieAPIView(APIView):
+
+    def get(self, request):
+        current_date = date.today()
+        movies = Movie.objects.filter(release_date__gt=current_date)
+        serializer = MovieSerializer(movies, many=True)
+        return Response(
+            {
+                "message": "Get list of upcoming movies successful",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+
+# get list of featured movies
+class GetListFeatureMovieAPIView(APIView):
+    
+    def get(self, request):
+        top_movies = Booking.objects.values('screening__movie__id').annotate(num_bookings=Count('id')).order_by('-num_bookings')[:3]
+        top_movie_ids = [movie['screening__movie__id'] for movie in top_movies]
+        movies = Movie.objects.filter(id__in=top_movie_ids)
+
+        print(top_movie_ids)
+        movies = sorted(movies, key=lambda x: top_movie_ids.index(x.id))
+
+        for movie in movies:
+            for top_movie in top_movies:
+                if top_movie['screening__movie__id'] == movie.id:
+                    movie.num_bookings = top_movie['num_bookings']
+                    break
+
+        serializer = MovieSerializer(movies, many=True)
+        return Response(
+            {
+                "message": "Get list of upcoming movies successful",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+# get details of a movie
+class DetailMovieAPIView(APIView):
+
+    def get(self, request, movie_id):
+        try:
+            movie = Movie.objects.get(pk=movie_id)
+            serializer = MovieSerializer(movie)
+            return Response(
+                {
+                    "message": "Get details of a movie successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Movie.DoesNotExist:
+            return Response({"message": "Movie not found"}, status=status.HTTP_404_NOT_FOUND)
