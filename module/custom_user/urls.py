@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     RegistrationAPIView, LoginAPIView, LogoutAPIView, 
     ProfileAPIView, EditProfileAPIView, 
-    ImageUploadAPIView, RefreshTokenAPIView
+    ImageUploadAPIView, RefreshTokenAPIView,
+    CodeValidationAPIView,
 )
 
 urlpatterns = [
@@ -14,6 +15,8 @@ urlpatterns = [
     path('upload/', ImageUploadAPIView.as_view(), name='image-upload'),
     path('token/refresh/', RefreshTokenAPIView.as_view(), name='token_refresh'),
 
+    path('code-validation/', CodeValidationAPIView.as_view(), name='code-validation'),
+    path('check-code-validation/', CodeValidationAPIView.as_view(), name='check-code-validation'),
     # path('upload-image/', UploadImageView.as_view(), name='upload-image'),
     # path("film/", EditProfileAPIView.as_view(), name="edit-profile"),
     # path("admin-user/film/", EditProfileAPIView.as_view(), name="edit-profile"),

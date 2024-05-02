@@ -155,7 +155,6 @@ class CreatePaymentSessionAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_200_OK)
 
-
 #-------------------------------------------------
 #--------------- CONNNECT STRIPE -----------------
 #-------------------------------------------------
@@ -179,11 +178,11 @@ class CreateConnectAccountAPIView(APIView):
                         "requested": True
                     }
                 },
-                business_type="individual",
+                # business_type="individual",
                 settings={
                     "payouts": {
                         "schedule": {
-                            "delay_days": 2,
+                            "delay_days": 3,
                             "interval": "daily"
                         },
                     }

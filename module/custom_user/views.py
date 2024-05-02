@@ -14,6 +14,9 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 import os
 from supabase import create_client, Client, ClientOptions
 import stripe
+import random
+from threading import Thread
+import time
 
 from django.contrib.auth import authenticate
 from .serializers import RegistrationSerializer, LoginSerializer, ProfileSerializer
@@ -191,10 +194,24 @@ class ImageUploadAPIView(APIView):
             else: return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else: return Response(response["message"], status=status.HTTP_400_BAD_REQUEST)
 
-# scheduler = BackgroundScheduler()
-# scheduler.add_job(test_scheduler, 'cron', day_of_week='fri', hour=0, minute=0, week='2')
-# # scheduler.add_job(pay_out_to_my_bank, 'cron', second='*/10')
-# scheduler.start()
+
+count = None
+
+# code validation
+class CodeValidationAPIView(APIView):
+
+    def post(self, request):
+        global count
+        # Lấy dữ liệu từ request (nếu có) và cập nhật giá trị count
+        data = request.data
+        
+        return Response({"message": count}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        global count
+
+        count = 100
+        return Response({"message": "Count updated successfully to 10"}, status=status.HTTP_200_OK)
 
 # Set up remove expired refresh tokens in blacklist function
 def remove_expired_refresh_tokens():
