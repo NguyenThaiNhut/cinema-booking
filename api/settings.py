@@ -130,7 +130,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'nguyenthainhut005@gmail.com'  # Thay thế bằng địa chỉ email của bạn
+EMAIL_HOST_USER = 'nguyenthainhut005@gmail.com'
 EMAIL_HOST_PASSWORD = 'jmewmbfvftzvdyen'
 
 # DATABASES = {
@@ -180,7 +180,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_ROOT = BASE_DIR / "productionfiles"
-
 STATIC_URL = "static/"
 
 STATICFILES_DIRS = [
@@ -189,7 +188,6 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = "/media/"
-
 MEDIA_ROOT = BASE_DIR / "media"
 
 

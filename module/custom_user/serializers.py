@@ -107,7 +107,19 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "email", "phone_number", "dob", "avatar", "stripe_customer_id", "stripe_pm_id", "stripe_account_id", "address_id"]
+        fields = (
+            "id", 
+            "username", 
+            "email", 
+            "phone_number", 
+            "dob", 
+            "avatar", 
+            "avatar_name", 
+            "stripe_customer_id", 
+            "stripe_pm_id", 
+            "stripe_account_id", 
+            "address_id"
+        )
 
     def validate_email(self, attrs):
         if CustomUser.objects.filter(email=attrs):
@@ -139,11 +151,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
         instance.dob = validated_data.get('dob', instance.dob)
         instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.avatar_name = validated_data.get('avatar_name', instance.avatar_name)
         instance.address_id = validated_data.get('address_id', instance.address_id)
         instance.stripe_account_id = validated_data.get('stripe_account_id', instance.stripe_account_id)
         instance.stripe_pm_id = validated_data.get('stripe_pm_id', instance.stripe_pm_id)
 
-        print(f"checkk: {validated_data}") 
-
         instance.save()
         return instance
+
+
+

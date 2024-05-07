@@ -39,7 +39,8 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            # "poster",
+            "poster",
+            "poster_name",
             "trailer",
             "release_date",
             "content",
@@ -71,7 +72,8 @@ class MovieSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Update fields of the Movie instance
         instance.title = validated_data.get('title', instance.title)
-        # instance.poster = validated_data.get('poster', instance.trailer)
+        instance.poster = validated_data.get('poster', instance.poster)
+        instance.poster_name = validated_data.get('poster_name', instance.poster_name)
         instance.trailer = validated_data.get('trailer', instance.trailer)
         instance.release_date = validated_data.get('release_date', instance.release_date)
         instance.content = validated_data.get('content', instance.content)

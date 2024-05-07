@@ -49,7 +49,8 @@ class DirectorAndActor(models.Model):
 
 class Movie(models.Model):
     title = models.CharField(max_length=200)
-    poster = models.ImageField(upload_to="uploads/%Y/%m")
+    poster = models.TextField(blank=True, null=True)
+    poster_name = models.CharField(max_length=255, blank=True, null=True)
     trailer = models.URLField(null=True, blank=True)
     release_date = models.DateField()
     content = models.TextField()

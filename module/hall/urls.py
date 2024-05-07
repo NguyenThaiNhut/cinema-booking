@@ -9,7 +9,6 @@ from .views import (
     GetListSeatAPIView, SeatAPIView,
     GetListAddressAPIView, SearchAddressAPIView,
     GetListCienmaAPIView, SearchCinemaAPIView, FilterCinemaByBrandAPIView, GetDetailCienmaAPIView, UserFavoriteCinemaAPIView,
-    SendEmailAPIView
 )
 
 urlpatterns = [
@@ -56,6 +55,4 @@ urlpatterns = [
     path("cinema/add-user-favorite-cinema/", UserFavoriteCinemaAPIView.as_view(), name="add-user-favorite-cinema"),
     path("cinema/delete-user-favorite-cinema/<int:user_favorite_cinema_id>", UserFavoriteCinemaAPIView.as_view(), name="delete-user-favorite-cinema"),
     path("cinema/get-list-user-favorite-cinema/", UserFavoriteCinemaAPIView.as_view(), name="get-list-user-favorite-cinema"),
-
-    path("test-email/", SendEmailAPIView.as_view(), name="test-email"),
 ]

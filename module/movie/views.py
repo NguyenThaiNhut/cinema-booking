@@ -13,6 +13,8 @@ from .serializers import MovieSerializer
 
 from module.booking.models import Booking
 from module.booking.serializers import BookingSerializer
+from module.utils import ImageUploader
+
 
 # get list of movies
 class ListMovieAPIView(APIView):
@@ -52,6 +54,7 @@ class MovieAPIView(APIView):
 
     # create a new movie
     def post(self, request):
+        print(request.data)
         serializer = MovieSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -82,7 +85,6 @@ class MovieAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Movie.DoesNotExist:
             return Response({"message": "Movie not found"}, status=status.HTTP_404_NOT_FOUND)
-
     
     # delete a movie by its id
     def delete(self, request, movie_id):
@@ -93,6 +95,34 @@ class MovieAPIView(APIView):
         
         movie.delete()
         return Response({"message": "Delete movie successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+# upload movie poster
+class PosterUploadAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def put(self, request, movie_id):
+        try:
+            movie = Movie.objects.get(pk=movie_id)
+        except Movie.DoesNotExist:
+            return Response({"message": "Movie not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        bucket_name = "Movie" # bucket name
+        response = ImageUploader.upload_image_to_supabase(request.FILES["image"], bucket_name)
+        if response["err_code"] == 0:
+            poster = response["image_url"]
+            poster_name = response["image_name"]
+
+            if movie.poster and movie.poster_name:
+            # if the user has a previous avatar, delete the old avatar
+                ImageUploader.delete_old_image(bucket_name, movie.poster_name)
+
+            serializer = MovieSerializer(movie, data={"poster": poster, "poster_name": poster_name}, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Update movie poster successful"}, status=status.HTTP_201_CREATED)
+            else: return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response(response["message"], status=status.HTTP_400_BAD_REQUEST)
 
 
 # class CustomSearchFilter(filters.SearchFilter):

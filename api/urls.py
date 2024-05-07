@@ -32,6 +32,9 @@ urlpatterns = [
     path("", include("module.custom_user.urls")),
     path("", include("module.hall.urls")),
     path("", include("module.screening.urls")),
+    path("", include("module.review.urls")),
+    path("", include("module.booking.urls")),
+    # path("", include("module.ticket.urls")),
     path("admin/", admin.site.urls),
 ]
 

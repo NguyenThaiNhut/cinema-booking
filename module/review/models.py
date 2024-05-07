@@ -13,3 +13,4 @@ class Review(models.Model):
     comment = models.TextField()
     like_count = models.IntegerField(default=0)
     tags = models.ManyToManyField(ReviewTag)
+    created_at = models.DateTimeField(auto_now_add=True)

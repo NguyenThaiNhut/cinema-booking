@@ -4,12 +4,23 @@ from module.hall.models import Cinema
 
 class CustomUser(AbstractUser):
     avatar = models.TextField(blank=True, null=True)
+    avatar_name = models.CharField(max_length=255, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=False, null=False)
     stripe_customer_id  = models.CharField(max_length=255, blank=True, null=True)
     stripe_pm_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     address_id  = models.CharField(max_length=255, blank=True, null=True)
+
+
+class VerificationCode(models.Model):
+    user = models.ForeignKey(CustomUser, unique=True, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+
+    # def is_expired(self):
+    #     return timezone.now() > self.expires_at
 
     # def __str__(self) -> str:
     #     return self.phone_number

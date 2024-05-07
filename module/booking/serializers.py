@@ -23,3 +23,10 @@ class BookingSerializer(serializers.ModelSerializer):
             "seat_detail_id",
             "screening_id",
         )
+
+    def create(self, validated_data):
+        seat_detail_id = validated_data.get("seat_detail").id
+        screening_id = validated_data.get("screening").id
+
+        booking = Screening.objects.create(**validated_data, seat_detail_id=seat_detail_id, screening_id=screening_id)
+        return booking

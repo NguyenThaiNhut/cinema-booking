@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from django.utils import timezone
 from django.conf import settings
 
 from rest_framework import status
@@ -17,11 +18,14 @@ import stripe
 import random
 from threading import Thread
 import time
+from random import randint
+from django.core.mail import send_mail
 
 from django.contrib.auth import authenticate
 from .serializers import RegistrationSerializer, LoginSerializer, ProfileSerializer
-from .models import CustomUser
+from .models import CustomUser, VerificationCode
 from module.schedulers import start_scheduler_custom_user
+from module.utils import ImageUploader
 
 
 # register
@@ -150,44 +154,25 @@ class EditProfileAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# upload image 
+# upload avatar user
 class ImageUploadAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def upload_image_to_supabase(self, image):
-        try:
-            # Khởi tạo Supabase client
-            supabase_url = settings.SUPABASE_URL
-            supabase_key = settings.SUPABASE_KEY
-            supabase = create_client(supabase_url, supabase_key)
-
-            # image = file # get image from request
-            bucket_name = 'Image' # bucket name is saved in supabase storage
-            folder_path = 'Avatar/' # folder path in bucket is saved in supabase storage
-
-            # response = supabase.storage.upload(bucket_name, image_name, image.file)
-            # with open(image, 'rb') as f:
-            #     response = supabase.storage.from_(bucket_name).upload(file=f,path="sdf", file_options={"content-type": "image/jpeg"})
-            # response = supabase.storage.from_(bucket_name).upload(image.file.read(), image_name)
-            current_time_integer = int(datetime.now().timestamp()) # get current time type int
-            response = supabase.storage.from_(bucket_name).upload(f"{folder_path}{current_time_integer}", image.file.read(), file_options={"content-type": "image/jpeg"})
-            public_url = supabase.storage.from_(bucket_name).get_public_url(f"{folder_path}{current_time_integer}")
-            
-            if response.status_code == 200:
-                return {"err_code": 0, "message": public_url} 
-            else:
-                return {"err_code": 1, "message": "Avatar upload failed"}
-        except Exception as e:
-            return {"err_code": 2, "message": str(e)}
-
-
-    def post(self, request):
-        response = self.upload_image_to_supabase(request.FILES["image"])
+    def put(self, request):
+        # response = self.upload_image_to_supabase(request.FILES["image"])
+        bucket_name = "Avatar" # bucket name
+        response = ImageUploader.upload_image_to_supabase(request.FILES["image"], bucket_name)
         if response["err_code"] == 0:
-            avatar = response["message"]
+            avatar = response["image_url"]
+            avatar_name = response["image_name"]
+
             user = request.user
-            serializer = ProfileSerializer(user, data={"avatar": avatar}, partial=True)
+            if user.avatar and user.avatar_name:
+            # if the user has a previous avatar, delete the old avatar
+                ImageUploader.delete_old_image(bucket_name, user.avatar_name)
+
+            serializer = ProfileSerializer(user, data={"avatar": avatar, "avatar_name": avatar_name}, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"message": "Update avatar successful"}, status=status.HTTP_201_CREATED)
@@ -195,24 +180,95 @@ class ImageUploadAPIView(APIView):
         else: return Response(response["message"], status=status.HTTP_400_BAD_REQUEST)
 
 
-count = None
-
 # code validation
 class CodeValidationAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
-    def post(self, request):
-        global count
-        # Lấy dữ liệu từ request (nếu có) và cập nhật giá trị count
-        data = request.data
-        
-        return Response({"message": count}, status=status.HTTP_400_BAD_REQUEST)
-
+    def random_with_N_digits(self, n):
+        range_start = 10**(n-1)
+        range_end = (10**n)-1
+        return randint(range_start, range_end)
+    
+    # create a new code validation and send code validation to email of the user
     def get(self, request):
-        global count
+        user = request.user
+        random_number = self.random_with_N_digits(6)
 
-        count = 100
-        return Response({"message": "Count updated successfully to 10"}, status=status.HTTP_200_OK)
+        try:
+            # update or create a verification code for an user
+            verification_code, created = VerificationCode.objects.update_or_create(
+                user=user,
+                defaults={
+                    'code': random_number,
+                    'created_at': timezone.now(),
+                    'expires_at': timezone.now() + timezone.timedelta(seconds=60)
+                }
+            )
 
+            if user and user.email:
+                sender_email = settings.EMAIL_HOST_USER
+                recipient_email = user.email
+
+                try:
+                    send_mail(
+                        "Code",
+                        f"{random_number}",
+                        sender_email,
+                        [recipient_email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    return Response({"message": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            return Response({
+                "message": "Verification code created successfully",
+                "code": random_number,
+                "created": created
+            }, 
+            status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            # Xử lý nếu có lỗi xảy ra
+            return Response({"message": "Failed to create verification code", "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    # check verification code
+    def post(self, request):
+        user = request.user
+        code = request.data.get('code')
+
+        try:
+            verification_code = VerificationCode.objects.get(user=user, code=code)
+
+            current_time = timezone.now()
+            if current_time < verification_code.expires_at:
+                return Response({"message": "Verification code is valid"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Authentication code expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except VerificationCode.DoesNotExist:
+            return Response({"message": "Invalid verification code"}, status=status.HTTP_400_BAD_REQUEST)
+
+# update password 
+class PasswordAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def put(self, request):
+        username = request.user.username
+        new_password = request.data.get('new_password')
+
+        try:
+            user = CustomUser.objects.get(username=username)
+
+            user.set_password(new_password)
+            user.save()
+
+            return Response({"message": "Password updated successful"}, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            
 # Set up remove expired refresh tokens in blacklist function
 def remove_expired_refresh_tokens():
     current_time_utc = datetime.now(timezone.utc)

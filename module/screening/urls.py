@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (
     GetListScreeningPriceAPIView, ScreeningPriceAPIView,
-    GetListScreeningAPIView, ScreeningAPIView
+    GetListScreeningAPIView, ScreeningAPIView,
+    ScreeningByHallAPIView, GetScreeningDetailAPIView, 
 )
 
 urlpatterns = [
@@ -14,4 +15,7 @@ urlpatterns = [
     path("admin-user/screening/add-screening/", ScreeningAPIView.as_view(), name="add-screening"),
     path("admin-user/screening/update-screening/<int:screening_id>/", ScreeningAPIView.as_view(), name="update-screening"),
     path("admin-user/screening/delete-screening/<int:screening_id>/", ScreeningAPIView.as_view(), name="delete-screening"),
+
+    path("screening/get-screening-by-hall/<int:hall_id>/", ScreeningByHallAPIView.as_view(), name="get-screening-by-hall"),
+    path("screening/get-screening-detail/<int:screening_id>/", GetScreeningDetailAPIView.as_view(), name="get-screening-detail"),
 ]

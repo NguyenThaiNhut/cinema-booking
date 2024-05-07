@@ -7,6 +7,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import ScreeningPrice, Screening
 from .serializers import ScreeningPriceSerializer, ScreeningSerializer
 
+from module.hall.models import Hall, SeatDetail
+from module.hall.serializers import SeatSerializer
+
 # CRUD screening price
 # get screening price
 class GetListScreeningPriceAPIView(APIView):
@@ -165,6 +168,44 @@ class ScreeningAPIView(APIView):
             screening = Screening.objects.get(pk=screening_id)
             screening.delete()
             return Response({"message": "Delete screening successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Screening.DoesNotExist:
+            return Response({"message": "Screening not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+# get screening by hall
+class ScreeningByHallAPIView(APIView):
+    def get(self, request, hall_id):
+        try:
+            screenings = Screening.objects.filter(hall_id=hall_id)
+            serializer = ScreeningSerializer(screenings, many=True)
+            return Response(
+                {
+                    "message": "Get list of screening by hall successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
+        except Screening.DoesNotExist:
+            return Response({"message": "Screenings not found for this hall"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class GetScreeningDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    # get list screening - all screenings/screening by id
+    def get(self, request, screening_id):
+        try:
+            screening = Screening.objects.get(pk=screening_id)
+            seat_details = SeatDetail.objects.filter(hall_id=screening.hall_id)
+            serializer = SeatSerializer(seat_details, many=True)
+            return Response(
+                {
+                    "message": "Get all seat by screening successful",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
         except Screening.DoesNotExist:
             return Response({"message": "Screening not found"}, status=status.HTTP_404_NOT_FOUND)
 
